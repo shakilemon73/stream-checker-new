@@ -38,12 +38,18 @@ app.use("/api", router);
 const candidatePaths = [
   path.resolve(process.cwd(), "artifacts/streamguard/dist/public"),
   path.resolve(process.cwd(), "dist/public"),
-  path.resolve(import.meta.dirname, "../../streamguard/dist/public"),
+  path.resolve(__dirname, "../../streamguard/dist/public"),
+  path.resolve(__dirname, "../../../streamguard/dist/public"),
 ];
 
-const staticDir = candidatePaths.find((p) => fs.existsSync(p)) || candidatePaths[0];
+logger.info({ candidatePaths }, "Checking static frontend asset candidate paths");
 
-if (fs.existsSync(staticDir)) {
+const staticDir = candidatePaths.find((p) => fs.existsSync(p)) || candidatePaths[0];
+const staticExists = fs.existsSync(staticDir);
+
+logger.info({ staticDir, exists: staticExists }, "Selected static assets directory");
+
+if (staticExists) {
   app.use(express.static(staticDir));
   app.use((req, res, next) => {
     if (req.method !== "GET" && req.method !== "HEAD") {
@@ -56,9 +62,12 @@ if (fs.existsSync(staticDir)) {
     if (fs.existsSync(indexPath)) {
       res.sendFile(indexPath);
     } else {
+      logger.warn({ path: req.path, indexPath }, "Static index.html not found for fallback");
       next();
     }
   });
+} else {
+  logger.error("No valid static assets directory found. Frontend will not be served!");
 }
 
 export default app;

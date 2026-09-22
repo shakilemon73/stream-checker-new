@@ -8,6 +8,10 @@ out-tsc
 .expo
 .expo-shared
 
+# lockfiles
+bun.lock
+bun.lockb
+
 # dependencies
 node_modules
 
